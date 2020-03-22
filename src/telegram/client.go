@@ -3,7 +3,6 @@ package telegram
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,35 +20,59 @@ func (c *Config) getUrl(s string) string {
 	return c.Url + s
 }
 
-func (c *Config) GetUpdates(offSet int) {
-	url := c.getUrl("getUpdates")
-
-	resBody := make(map[string]string)
-	if offSet != 0 {
-		resBody["offSet"] = strconv.Itoa(offSet)
-	}
-
-	jsonBody, _ := json.Marshal(resBody)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+func (c *Config) httpClient(method string, url string, jsonBody map[string]interface{}, object interface{}) {
+	byteBody, err := json.Marshal(jsonBody)
 	if err != nil {
 		// TODO add logs
 		log.Fatal("")
+	}
+
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(byteBody))
+	if err != nil {
+		// TODO add logs
+		log.Fatal("NewRequest")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
 		// TODO add logs
-		log.Fatal("")
+		log.Fatal("Do")
 	}
 
 	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(&object)
 
-	respInt := object.GetUpdate{}
-	_ = json.NewDecoder(resp.Body).Decode(&respInt)
+	if err != nil {
+		// TODO add logs
+		log.Fatal("NewDecoder")
+	}
+}
 
-	fmt.Println(respInt)
+func (c *Config) GetUpdates(offSet int) object.GetUpdate {
+	url := c.getUrl("getUpdates")
+
+	jsonBody := make(map[string]interface{})
+	if offSet != 0 {
+		jsonBody["offset"] = strconv.Itoa(offSet)
+	}
+
+	resUpdate := object.GetUpdate{}
+	c.httpClient("POST", url, jsonBody, &resUpdate)
+
+	return resUpdate
+}
+
+func (c *Config) SendMessage(chatId int, text string) {
+	url := c.getUrl("sendMessage")
+	jsonBody := map[string]interface{}{
+		"chat_id":    chatId,
+		"text":       text,
+		"parse_mode": "Markdown",
+	}
+
+	c.httpClient("POST", url, jsonBody, nil)
 }
