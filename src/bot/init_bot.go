@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -29,7 +30,7 @@ func (c *Config) init() {
 	}
 }
 
-func getMessage(item object.Update) object.Message {
+func getMessage(item object.Update) (object.Message, error) {
 	_empty := object.Message{}
 	var message object.Message
 
@@ -42,28 +43,44 @@ func getMessage(item object.Update) object.Message {
 	} else if item.EditedChannelPost != _empty {
 		message = item.EditedChannelPost
 	} else {
-		// TODO add logs
-		log.Fatal("ERRR")
+		return message, errors.New("not found messages")
 	}
-	return message
+	return message, nil
 }
 
 func (c Config) sendIds(item object.Update) {
-	message := getMessage(item)
+	message, err := getMessage(item)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	chatId := message.Chat.Id
 
 	fmt.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", chatId, item.UpdateId))
 
 	sendMessage := fmt.Sprintf("Chat ID: %d", chatId)
-	c.tgClient.SendMessage(chatId, sendMessage)
-	c.tgClient.SetChatDescription(chatId, sendMessage)
+
+	err = c.tgClient.SendMessage(chatId, sendMessage)
+	if err != nil {
+		fmt.Println("error SendMessage message=" + sendMessage)
+	}
+	err = c.tgClient.SetChatDescription(chatId, sendMessage)
+	if err != nil {
+		fmt.Println("error SetChatDescription message=" + sendMessage)
+	}
 }
 
 func (c *Config) GetUpdates() {
 	updateId := 0
 
 	for true {
-		raw := c.tgClient.GetUpdates(updateId)
+		raw, err := c.tgClient.GetUpdates(updateId)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 
 		for _, item := range raw.Result {
 			c.sendIds(item)

@@ -3,7 +3,6 @@ package telegram
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,17 +19,15 @@ func (c *Config) getUrl(s string) string {
 	return c.Url + s
 }
 
-func (c *Config) httpClient(method string, url string, jsonBody map[string]interface{}, object interface{}) {
+func (c *Config) httpClient(method string, url string, jsonBody map[string]interface{}, object interface{}) error {
 	byteBody, err := json.Marshal(jsonBody)
 	if err != nil {
-		// TODO add logs
-		log.Fatal("")
+		return err
 	}
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(byteBody))
 	if err != nil {
-		// TODO add logs
-		log.Fatal("NewRequest")
+		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -39,20 +36,19 @@ func (c *Config) httpClient(method string, url string, jsonBody map[string]inter
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		// TODO add logs
-		log.Fatal("Do")
+		return err
 	}
 
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&object)
 
 	if err != nil {
-		// TODO add logs
-		log.Fatal("NewDecoder")
+		return err
 	}
+	return nil
 }
 
-func (c *Config) GetUpdates(offSet int) object.GetUpdate {
+func (c *Config) GetUpdates(offSet int) (object.GetUpdate, error) {
 	url := c.getUrl("getUpdates")
 
 	jsonBody := make(map[string]interface{})
@@ -61,12 +57,12 @@ func (c *Config) GetUpdates(offSet int) object.GetUpdate {
 	}
 
 	resUpdate := object.GetUpdate{}
-	c.httpClient("POST", url, jsonBody, &resUpdate)
+	err := c.httpClient("POST", url, jsonBody, &resUpdate)
 
-	return resUpdate
+	return resUpdate, err
 }
 
-func (c *Config) SendMessage(chatId int, text string) {
+func (c *Config) SendMessage(chatId int, text string) error {
 	url := c.getUrl("sendMessage")
 	jsonBody := map[string]interface{}{
 		"chat_id":    chatId,
@@ -74,15 +70,15 @@ func (c *Config) SendMessage(chatId int, text string) {
 		"parse_mode": "Markdown",
 	}
 
-	c.httpClient("POST", url, jsonBody, nil)
+	return c.httpClient("POST", url, jsonBody, nil)
 }
 
-func (c *Config) SetChatDescription(chatId int, text string) {
+func (c *Config) SetChatDescription(chatId int, text string) error {
 	url := c.getUrl("setChatDescription")
 	jsonBody := map[string]interface{}{
 		"chat_id":     chatId,
 		"description": text,
 	}
 
-	c.httpClient("POST", url, jsonBody, nil)
+	return c.httpClient("POST", url, jsonBody, nil)
 }
