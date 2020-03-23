@@ -76,3 +76,13 @@ func (c *Config) SendMessage(chatId int, text string) {
 
 	c.httpClient("POST", url, jsonBody, nil)
 }
+
+func (c *Config) SetChatDescription(chatId int, text string) {
+	url := c.getUrl("setChatDescription")
+	jsonBody := map[string]interface{}{
+		"chat_id":     chatId,
+		"description": text,
+	}
+
+	c.httpClient("POST", url, jsonBody, nil)
+}

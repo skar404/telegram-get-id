@@ -30,7 +30,7 @@ func (c *Config) init() {
 }
 
 func getMessage(item object.Update) object.Message {
-	_empty := (object.Message{})
+	_empty := object.Message{}
 	var message object.Message
 
 	if item.Message != _empty {
@@ -48,26 +48,41 @@ func getMessage(item object.Update) object.Message {
 	return message
 }
 
-func (c *Config) sendIds() {
+func (c Config) sendIds(item object.Update) {
+	message := getMessage(item)
+	chatId := message.Chat.Id
+
+	fmt.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", chatId, item.UpdateId))
+
+	sendMessage := fmt.Sprintf("Chat ID: %d", chatId)
+	c.tgClient.SendMessage(chatId, sendMessage)
+	c.tgClient.SetChatDescription(chatId, sendMessage)
+}
+
+func (c *Config) GetUpdates() {
 	updateId := 0
+
 	for true {
-		fmt.Println(fmt.Sprintf("updateId=%d", updateId))
 		raw := c.tgClient.GetUpdates(updateId)
 
 		for _, item := range raw.Result {
-			message := getMessage(item)
-
-			fmt.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", message.Chat.Id, item.UpdateId))
-			c.tgClient.SendMessage(message.Chat.Id, fmt.Sprintf("Chat ID: %d", message.Chat.Id))
+			c.sendIds(item)
 
 			updateId = item.UpdateId + 1
 		}
 	}
 }
 
+func (c *Config) WebHook() {
+
+}
+
 func (c *Config) Start() {
 	c.init()
 	if c.Mod == "GET_UPDATES" {
-		c.sendIds()
+		c.GetUpdates()
+	} else if c.Mod == "WEB_HOOK" {
+		c.WebHook()
 	}
+	log.Fatalln("not valid mod")
 }
