@@ -78,3 +78,8 @@ type GetUpdate struct {
 	Ok     bool     `json:"ok"`
 	Result []Update `json:"result"`
 }
+
+type GetMe struct {
+	Ok     bool `json:"ok"`
+	Result User `json:"result"`
+}

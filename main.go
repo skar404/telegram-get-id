@@ -32,12 +32,15 @@ func initEnv() Setting {
 
 func main() {
 	env := initEnv()
-	fmt.Println(fmt.Sprintf("Start app, mod: %s", env.Mod))
+	log.Println(fmt.Sprintf("Start app, mod: %s", env.Mod))
 
 	myBot := bot.Config{
 		Mod:      env.Mod,
 		BotToken: env.BotToken,
 	}
 
-	myBot.Start()
+	err := myBot.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

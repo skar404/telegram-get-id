@@ -82,3 +82,12 @@ func (c *Config) SetChatDescription(chatId int, text string) error {
 
 	return c.httpClient("POST", url, jsonBody, nil)
 }
+
+func (c *Config) GetMe() (object.GetMe, error) {
+	url := c.getUrl("getMe")
+
+	resUpdate := object.GetMe{}
+
+	err := c.httpClient("GET", url, nil, &resUpdate)
+	return resUpdate, err
+}

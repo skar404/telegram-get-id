@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"telegram-get-id/src/telegram"
 	"telegram-get-id/src/telegram/object"
+	"telegram-get-id/src/utils"
 )
 
 type Config struct {
@@ -17,7 +19,11 @@ type Config struct {
 	tgClient telegram.Config
 }
 
-func (c *Config) init() {
+func (c *Config) init() error {
+	if c.BotToken == "" {
+		return errors.New("not valid token")
+	}
+
 	if c.TelegramUrl == "" {
 		c.TelegramUrl = fmt.Sprintf("https://api.telegram.org/bot%s/", c.BotToken)
 	} else {
@@ -28,6 +34,20 @@ func (c *Config) init() {
 	c.tgClient = telegram.Config{
 		Url: c.TelegramUrl,
 	}
+
+	return c.isValidToken()
+}
+
+func (c *Config) isValidToken() error {
+	bot, err := c.tgClient.GetMe()
+
+	if err != nil {
+		log.Println(err)
+		return errors.New("connect fail")
+	} else if bot.Ok == false {
+		return errors.New("not valid token")
+	}
+	return nil
 }
 
 func getMessage(item object.Update) (object.Message, error) {
@@ -48,6 +68,15 @@ func getMessage(item object.Update) (object.Message, error) {
 	return message, nil
 }
 
+func skipText(text string) bool {
+	validMessage := []string{
+		"id", "/id", "@id", "get id", "get_id", "get-id", "/get_id", "/get-id", "@send_id_ru_bot", "@send_id_bot",
+		"@send_id",
+	}
+
+	return !utils.StringInSlice(strings.ToLower(text), validMessage)
+}
+
 func (c Config) sendIds(item object.Update) {
 	message, err := getMessage(item)
 	if err != nil {
@@ -55,19 +84,23 @@ func (c Config) sendIds(item object.Update) {
 		return
 	}
 
+	if skipText(message.Text) {
+		return
+	}
+
 	chatId := message.Chat.Id
 
-	fmt.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", chatId, item.UpdateId))
+	log.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", chatId, item.UpdateId))
 
 	sendMessage := fmt.Sprintf("Chat ID: %d", chatId)
 
 	err = c.tgClient.SendMessage(chatId, sendMessage)
 	if err != nil {
-		fmt.Println("error SendMessage message=" + sendMessage)
+		log.Println("error SendMessage message=" + sendMessage)
 	}
 	err = c.tgClient.SetChatDescription(chatId, sendMessage)
 	if err != nil {
-		fmt.Println("error SetChatDescription message=" + sendMessage)
+		log.Println("error SetChatDescription message=" + sendMessage)
 	}
 }
 
@@ -78,7 +111,7 @@ func (c *Config) GetUpdates() {
 		raw, err := c.tgClient.GetUpdates(updateId)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 
@@ -94,12 +127,18 @@ func (c *Config) WebHook() {
 
 }
 
-func (c *Config) Start() {
-	c.init()
+func (c *Config) Start() error {
+	err := c.init()
+	if err != nil {
+		return err
+	}
+
 	if c.Mod == "GET_UPDATES" {
 		c.GetUpdates()
 	} else if c.Mod == "WEB_HOOK" {
 		c.WebHook()
 	}
 	log.Fatalln("not valid mod")
+
+	return nil
 }
