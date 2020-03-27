@@ -173,7 +173,7 @@ func (c *Config) WebHook() {
 		host = "127.0.0.1"
 	}
 
-	host += c.AppPort
+	host += ":" + c.AppPort
 	if c.AppPort == "" {
 		host += ":8080"
 	}
