@@ -111,10 +111,12 @@ func (c Config) sendIds(item object.Update) {
 	if err != nil {
 		log.Println("error SendMessage message=" + sendMessage)
 	}
-	err = c.tgClient.SetChatDescription(chatId, sendMessage)
-	if err != nil {
-		log.Println("error SetChatDescription message=" + sendMessage)
-	}
+
+	// move to new command
+	//err = c.tgClient.SetChatDescription(chatId, sendMessage)
+	//if err != nil {
+	//	log.Println("error SetChatDescription message=" + sendMessage)
+	//}
 }
 
 func (c *Config) GetUpdates() {
