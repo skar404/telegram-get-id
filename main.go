@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,22 +11,14 @@ import (
 )
 
 type Setting struct {
-	Mod         string
-	BotToken    string
-	TelegramUrl string
-
-	AppHost string
-
+	Mod   string
 	Debug bool
 }
 
-func initEnv() Setting {
+func initEnv() (Setting, error) {
 	// Init
 	s := Setting{
-		Mod:      os.Getenv("MOD"),
-		BotToken: os.Getenv("BOT_TOKEN"),
-
-		AppHost: os.Getenv("APP_HOST"),
+		Mod: os.Getenv("MOD"),
 	}
 
 	if utils.StringInSlice(os.Getenv("DEBUG"), []string{"True", "true", "1"}) {
@@ -34,29 +27,29 @@ func initEnv() Setting {
 
 	// Validate:
 	if !utils.StringInSlice(s.Mod, []string{"WEB_HOOK", "GET_UPDATES"}) {
-		log.Fatalln(fmt.Sprintf("Not Valid env MOD=%s", s.Mod))
+		return s, errors.New(fmt.Sprintf("not Valid env MOD=%s", s.Mod))
 	}
-
-	return s
+	return s, nil
 }
 
 func main() {
+	env, err := initEnv()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	log.Println(os.Getenv("PORT"))
-
-	env := initEnv()
 	log.Println(fmt.Sprintf("Start app, mod: %s", env.Mod))
 
 	myBot := bot.Config{
 		Mod:      env.Mod,
-		BotToken: env.BotToken,
-		AppHost:  env.AppHost,
+		BotToken: os.Getenv("BOT_TOKEN"),
+		AppHost:  os.Getenv("APP_HOST"),
 		AppPort:  os.Getenv("PORT"),
 
 		Debug: env.Debug,
 	}
 
-	err := myBot.Start()
+	err = myBot.Start()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -155,12 +155,12 @@ func (c *Config) telegramWebHook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-func (c *Config) WebHook() {
+func (c *Config) WebHook() error {
 	// set
 	hookLink := c.AppHost + c.botPath
 	err := c.tgClient.SetWebHook(hookLink, 0)
 	if err != nil {
-		log.Fatalln(fmt.Sprintf("error set webhook=%s", hookLink))
+		return errors.New(fmt.Sprintf("error set webhook=%s", hookLink))
 	}
 	log.Println(fmt.Sprintf("set webhook=%s", hookLink))
 
@@ -179,7 +179,7 @@ func (c *Config) WebHook() {
 	}
 
 	log.Println("Start web app host: " + host)
-	log.Fatal(http.ListenAndServe(host, nil))
+	return http.ListenAndServe(host, nil)
 }
 
 func (c *Config) Start() error {
@@ -191,9 +191,7 @@ func (c *Config) Start() error {
 	if c.Mod == "GET_UPDATES" {
 		c.GetUpdates()
 	} else if c.Mod == "WEB_HOOK" {
-		c.WebHook()
+		return c.WebHook()
 	}
-	log.Fatalln("not valid mod")
-
-	return nil
+	return errors.New("not valid mod")
 }
