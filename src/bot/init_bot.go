@@ -166,11 +166,11 @@ func (c *Config) WebHook() {
 	http.HandleFunc("/"+c.botPath, c.telegramWebHook)
 
 	// set host
-	host := "0.0.0.0"
+	host := ""
 	if c.Debug == true {
 		host = "127.0.0.1"
 	}
-	host += ":80"
+	host += ":5000"
 
 	log.Println("Start web app host: " + host)
 	log.Fatal(http.ListenAndServe(host, nil))
