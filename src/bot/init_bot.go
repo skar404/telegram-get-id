@@ -1,9 +1,11 @@
 package bot
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"telegram-get-id/src/telegram"
@@ -15,6 +17,12 @@ type Config struct {
 	BotToken    string
 	Mod         string
 	TelegramUrl string
+	AppHost     string
+
+	Debug bool
+
+	botKey  string
+	botPath string
 
 	tgClient telegram.Config
 }
@@ -34,6 +42,9 @@ func (c *Config) init() error {
 	c.tgClient = telegram.Config{
 		Url: c.TelegramUrl,
 	}
+
+	c.botKey = utils.RandStringRunes(50)
+	c.botPath = "telegram/" + c.botKey
 
 	return c.isValidToken()
 }
@@ -123,8 +134,44 @@ func (c *Config) GetUpdates() {
 	}
 }
 
-func (c *Config) WebHook() {
+func (c *Config) telegramWebHook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(404)
+		return
+	}
 
+	update := object.Update{}
+
+	err := json.NewDecoder(r.Body).Decode(&update)
+	if err != nil {
+		log.Println("error decode body json")
+		w.WriteHeader(400)
+		return
+	}
+
+	c.sendIds(update)
+	w.WriteHeader(200)
+}
+
+func (c *Config) WebHook() {
+	// set
+	hookLink := c.AppHost + c.botPath
+	err := c.tgClient.SetWebHook(hookLink, 0)
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("error set webhook=%s", hookLink))
+	}
+	log.Println(fmt.Sprintf("set webhook=%s", hookLink))
+
+	// init web server
+	http.HandleFunc("/"+c.botPath, c.telegramWebHook)
+
+	// set host
+	host := "0.0.0.0"
+	if c.Debug == true {
+		host = "127.0.0.1"
+	}
+
+	log.Fatal(http.ListenAndServe(host+":5000", nil))
 }
 
 func (c *Config) Start() error {

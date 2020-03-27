@@ -91,3 +91,16 @@ func (c *Config) GetMe() (object.GetMe, error) {
 	err := c.httpClient("GET", url, nil, &resUpdate)
 	return resUpdate, err
 }
+
+func (c *Config) SetWebHook(hookUrl string, maxConn int) error {
+	url := c.getUrl("setWebhook")
+	jsonBody := map[string]interface{}{
+		"url": hookUrl,
+	}
+
+	if maxConn != 0 {
+		jsonBody["max_connections"] = maxConn
+	}
+
+	return c.httpClient("POST", url, jsonBody, nil)
+}

@@ -10,4 +10,6 @@ FROM alpine:3.11
 
 COPY --from=build /src/app .
 
+EXPOSE 5000
+
 CMD ["./app"]

@@ -13,6 +13,10 @@ type Setting struct {
 	Mod         string
 	BotToken    string
 	TelegramUrl string
+
+	AppHost string
+
+	Debug bool
 }
 
 func initEnv() Setting {
@@ -20,6 +24,12 @@ func initEnv() Setting {
 	s := Setting{
 		Mod:      os.Getenv("MOD"),
 		BotToken: os.Getenv("BOT_TOKEN"),
+
+		AppHost: os.Getenv("APP_HOST"),
+	}
+
+	if utils.StringInSlice(os.Getenv("DEBUG"), []string{"True", "true", "1"}) {
+		s.Debug = true
 	}
 
 	// Validate:
@@ -37,6 +47,9 @@ func main() {
 	myBot := bot.Config{
 		Mod:      env.Mod,
 		BotToken: env.BotToken,
+		AppHost:  env.AppHost,
+
+		Debug: env.Debug,
 	}
 
 	err := myBot.Start()

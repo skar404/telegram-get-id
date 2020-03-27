@@ -1,2 +1,7 @@
 .idea/
 .now
+
+bin/
+
+env
+ы.env
