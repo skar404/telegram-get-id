@@ -41,6 +41,9 @@ func initEnv() Setting {
 }
 
 func main() {
+
+	log.Println(os.Getenv("PORT"))
+
 	env := initEnv()
 	log.Println(fmt.Sprintf("Start app, mod: %s", env.Mod))
 
