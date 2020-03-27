@@ -175,7 +175,7 @@ func (c *Config) WebHook() {
 
 	host += ":" + c.AppPort
 	if c.AppPort == "" {
-		host += ":8080"
+		host += "8080"
 	}
 
 	log.Println("Start web app host: " + host)
