@@ -14,7 +14,7 @@ Example:
 
 ---
 
-run app:
+Run app:
 
 ```bash
 export MOD=GET_UPDATES
@@ -23,7 +23,7 @@ export BOT_TOKEN=BOK_TOKEN
 go run main.go
 ```
 
-run app in docker:
+Run app in docker:
 
 ```bash
 docker build . -t telegram-get-id
