@@ -51,6 +51,7 @@ func main() {
 		Mod:      env.Mod,
 		BotToken: env.BotToken,
 		AppHost:  env.AppHost,
+		AppPort:  os.Getenv("PORT"),
 
 		Debug: env.Debug,
 	}

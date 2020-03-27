@@ -17,7 +17,9 @@ type Config struct {
 	BotToken    string
 	Mod         string
 	TelegramUrl string
-	AppHost     string
+
+	AppHost string
+	AppPort string
 
 	Debug bool
 
@@ -170,7 +172,11 @@ func (c *Config) WebHook() {
 	if c.Debug == true {
 		host = "127.0.0.1"
 	}
-	host += ":5000"
+
+	host += c.AppPort
+	if c.AppPort == "" {
+		host += ":8080"
+	}
 
 	log.Println("Start web app host: " + host)
 	log.Fatal(http.ListenAndServe(host, nil))
