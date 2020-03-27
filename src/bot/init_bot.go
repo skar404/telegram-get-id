@@ -170,8 +170,10 @@ func (c *Config) WebHook() {
 	if c.Debug == true {
 		host = "127.0.0.1"
 	}
+	host += ":80"
 
-	log.Fatal(http.ListenAndServe(host+":5000", nil))
+	log.Println("Start web app host: " + host)
+	log.Fatal(http.ListenAndServe(host, nil))
 }
 
 func (c *Config) Start() error {
