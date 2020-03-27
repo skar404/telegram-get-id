@@ -21,7 +21,7 @@ type Config struct {
 
 func (c *Config) init() error {
 	if c.BotToken == "" {
-		return errors.New("not valid token")
+		return errors.New("token is nil")
 	}
 
 	if c.TelegramUrl == "" {
