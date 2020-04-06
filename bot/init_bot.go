@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"telegram-get-id/src/telegram"
-	"telegram-get-id/src/telegram/object"
-	"telegram-get-id/src/utils"
+	"github.com/skar404/telegram-get-id/telegram"
+	"github.com/skar404/telegram-get-id/telegram/object"
+	"github.com/skar404/telegram-get-id/utils"
 )
 
 type Config struct {

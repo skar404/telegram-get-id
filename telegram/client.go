@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"telegram-get-id/src/telegram/object"
+	"github.com/skar404/telegram-get-id/telegram/object"
 )
 
 type Config struct {

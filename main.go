@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"telegram-get-id/src/bot"
-	"telegram-get-id/src/utils"
+	"github.com/skar404/telegram-get-id/bot"
+	"github.com/skar404/telegram-get-id/utils"
 )
 
 type Setting struct {
