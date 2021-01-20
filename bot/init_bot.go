@@ -97,11 +97,33 @@ func (c Config) sendIds(item object.Update) {
 		return
 	}
 
-	if skipText(message.Text) {
+	chatId := message.Chat.Id
+
+	if message.Chat.Id > 0 {
+		var forwardId int
+		var sendMessage string
+
+		if message.ForwardFrom.Id != 0 {
+			f := message.ForwardFrom
+			forwardId = f.Id
+			sendMessage = fmt.Sprintf("Forvard user id: %d\nusername: @%s (%s %s)\nlanguage_code: %s", forwardId, f.Username, f.FirstName, f.LastName, f.LanguageCode)
+		} else if message.ForwardFromChat.Id != 0 {
+			f := message.ForwardFromChat
+			forwardId = f.Id
+			sendMessage = fmt.Sprintf("Forvard chat id: %d\nname: %s\ntype: %s\ndescription: %s\nusername: @%s", forwardId, f.Title, f.Type, f.Description, f.Username)
+		}
+
+		log.Println(fmt.Sprintf("Send forvard to chat_id=%d update_id=%d", chatId, item.UpdateId))
+
+		err = c.tgClient.SendMessage(chatId, sendMessage)
+		if err != nil {
+			log.Println("error SendMessage message=" + sendMessage)
+		}
+
+		return
+	} else if skipText(message.Text) {
 		return
 	}
-
-	chatId := message.Chat.Id
 
 	log.Println(fmt.Sprintf("Send message to chat_id=%d update_id=%d", chatId, item.UpdateId))
 
@@ -121,6 +143,8 @@ func (c Config) sendIds(item object.Update) {
 
 func (c *Config) GetUpdates() {
 	updateId := 0
+
+	_ = c.tgClient.DeleteWebhook()
 
 	for true {
 		raw, err := c.tgClient.GetUpdates(updateId)

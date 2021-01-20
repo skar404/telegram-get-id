@@ -3,6 +3,7 @@ package telegram
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -40,7 +41,13 @@ func (c *Config) httpClient(method string, url string, jsonBody map[string]inter
 	}
 
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(&object)
+
+	BodyRaw, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(BodyRaw, &object)
 
 	if err != nil {
 		return err
@@ -62,12 +69,17 @@ func (c *Config) GetUpdates(offSet int) (object.GetUpdate, error) {
 	return resUpdate, err
 }
 
+func (c *Config) DeleteWebhook() error {
+	url := c.getUrl("deleteWebhook")
+	err := c.httpClient("POST", url, nil, nil)
+	return err
+}
+
 func (c *Config) SendMessage(chatId int, text string) error {
 	url := c.getUrl("sendMessage")
 	jsonBody := map[string]interface{}{
-		"chat_id":    chatId,
-		"text":       text,
-		"parse_mode": "Markdown",
+		"chat_id": chatId,
+		"text":    text,
 	}
 
 	return c.httpClient("POST", url, jsonBody, nil)
