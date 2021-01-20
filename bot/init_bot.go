@@ -99,7 +99,7 @@ func (c Config) sendIds(item object.Update) {
 
 	chatId := message.Chat.Id
 
-	if message.Chat.Id > 0 {
+	if message.Chat.Id > 0 && (message.ForwardFrom.Id != 0 || message.ForwardFromChat.Id != 0) {
 		var forwardId int
 		var sendMessage string
 
